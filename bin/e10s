@@ -88,6 +88,11 @@ runjar()
   fi
 
   #
+  # Make sure we have adequate permissions to new files
+  #
+  chmod -R 777 ${jar_dir}
+
+  #
   # Get list of new jar files
   #
 
@@ -146,7 +151,10 @@ cd ${XPI_DIRNAME}
 if [[ ! -e $RESULT_DIR ]]
 then
   echo "Unpacking XPI..." >&2
-  runjar ${XPI_FILE}
+  ERRORS=$(runjar ${XPI_FILE} 2>&1)
+  if [ -n "$ERRORS" ]; then
+    echo $ERRORS > ${XPI_DIRNAME}/runjar.log
+  fi
   mv ${XPI_FILE}.unjar ${RESULT_DIR}
 fi
 
@@ -184,12 +192,20 @@ E10S=$ROOT/lib/e10s
 ALLJS=${XPI_DIRNAME}/all.js
 WRAPPEDJS=${XPI_DIRNAME}/wrapped.js
 COORDS=${XPI_DIRNAME}/coords.json
+SKIPPED=${XPI_DIRNAME}/skipped.json
+TEMPFILE=$(mktemp concat.XXXXXXXXXX)
 
 cd $E10S
 
 echo "Extracting JavaScript..." >&2
 
-./concat.js "${ABS_RESULT_DIR}" "${JS_ARRAY}" "${JSM_ARRAY}" "${XUL_ARRAY}" $ALLJS $WRAPPEDJS $COORDS
+ERRORS=$(./concat.js "${ABS_RESULT_DIR}" "${JS_ARRAY}" "${JSM_ARRAY}" "${XUL_ARRAY}" $ALLJS $WRAPPEDJS $COORDS $SKIPPED /tmp/$TEMPFILE 2>&1)
+
+if [ "$?" != "0" ]; then
+    echo "concatfail" > ${XPI_DIRNAME}/result
+    echo $ERRORS >> ${XPI_DIRNAME}/result
+    exit 0
+fi
 
 cd $HERE
 
@@ -202,11 +218,12 @@ fi
 
 echo "Checking applicability of analysis..." >&2
 
-${SPIDERMONKEY_SHELL} -e "var source = snarf('${WRAPPEDJS}');" -f $E10S/bogosity.js > ${XPI_DIRNAME}/bogosity
+STATS=$(${SPIDERMONKEY_SHELL} -e "var source = snarf('${WRAPPEDJS}');" -f $E10S/bogosity.js 2>&1)
 
-if fgrep -q '"bogus":true' ${XPI_DIRNAME}/bogosity ; then
-  echo unanalyzable > ${XPI_DIRNAME}/result
-  exit 0
+if [ -n "$STATS" ]; then
+    echo "$STATS" > ${XPI_DIRNAME}/unanalyzable
+    echo unanalyzable > ${XPI_DIRNAME}/result
+    exit 0
 fi
 
 echo "Analyzing source..." >&2
