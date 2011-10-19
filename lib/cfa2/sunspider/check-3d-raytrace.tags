@@ -7,7 +7,7 @@
 createVector	check-3d-raytrace.js	/^function createVector(x,y,z) {$/;"	f	lineno:26	type:Array[number] function(number, number, number)
 sqrLengthVector	check-3d-raytrace.js	/^function sqrLengthVector(self) {$/;"	f	lineno:30	type:number function(any)
 lengthVector	check-3d-raytrace.js	/^function lengthVector(self) {$/;"	f	lineno:34	type:number function(Array[number])
-addVector	check-3d-raytrace.js	/^function addVector(self, v) {$/;"	f	lineno:38	type:Array[number] function(Array[number], <null | Array[number]>)
+addVector	check-3d-raytrace.js	/^function addVector(self, v) {$/;"	f	lineno:38	type:<null | Array[number]> function(<null | Array[number]>, <null | Array[number]>)
 subVector	check-3d-raytrace.js	/^function subVector(self, v) {$/;"	f	lineno:45	type:Array[number] function(Array[number], Array[number])
 scaleVector	check-3d-raytrace.js	/^function scaleVector(self, scale) {$/;"	f	lineno:52	type:<null | Array[number]> function(<null | Array[number]>, <number | undefined>)
 normaliseVector	check-3d-raytrace.js	/^function normaliseVector(self) {$/;"	f	lineno:59	type:Array[number] function(Array[number])
