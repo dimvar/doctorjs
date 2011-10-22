@@ -230,24 +230,25 @@ echo "Analyzing source..." >&2
 
 cd $ROOT/lib/cfa2
 
-# Run a background subshell to time this process out after 5 minutes.
+env time -f "%E" -o ${XPI_DIRNAME}/elapsed ./evtclassify.js $ALLJS $COORDS ${XPI_BASENAME} ${XPI_DIRNAME} > ${XPI_DIRNAME}/output 2>&1 &
+export ANALYSIS=$!
+
+# Time out after 5 minutes.
 (
   ((t = 300))
 
   # Busy wait.
   while ((t > 0)); do
     sleep 1
-    # If this process is already dead, no need to timeout.
-    kill -0 $$ || exit 0
+    # If the analysis process is already dead, no need to timeout.
+    kill -0 $ANALYSIS || exit 0
     ((t -= 1))
   done
 
   # Be friendly and send a SIGTERM first.
-  kill -s SIGTERM $$ && kill -0 $$ || exit 0
+  kill -s SIGTERM $ANALYSIS && kill -0 $ANALYSIS || exit 0
   # Wait a sec, then set blasters to kill.
   sleep 1
-  kill -s SIGKILL $$
+  kill -s SIGKILL $ANALYSIS
   echo timeout > ${XPI_DIRNAME}/result
 ) 2> /dev/null &
-
-exec env time -f "%E" -o ${XPI_DIRNAME}/elapsed ./evtclassify.js $ALLJS $COORDS ${XPI_BASENAME} ${XPI_DIRNAME} > ${XPI_DIRNAME}/output 2>&1
