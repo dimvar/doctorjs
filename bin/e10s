@@ -245,10 +245,9 @@ export ANALYSIS=$!
     ((t -= 1))
   done
 
-  # Be friendly and send a SIGTERM first.
-  kill -s SIGTERM $ANALYSIS && kill -0 $ANALYSIS || exit 0
-  # Wait a sec, then set blasters to kill.
-  sleep 1
+  # Kill the analysis child processes (in particular, the Node process)
+  pkill -KILL -P $ANALYSIS
+  # Kill the analysis process
   kill -s SIGKILL $ANALYSIS
   echo timeout > ${XPI_DIRNAME}/result
-) 2> /dev/null &
+) 2> /dev/null
