@@ -190,6 +190,7 @@ XUL_ARRAY=$(path_array '*.xul')
 E10S=$ROOT/lib/e10s
 
 ALLJS=${XPI_DIRNAME}/all.js
+NORMALIZEDJS=${XPI_DIRNAME}/normalized.js
 WRAPPEDJS=${XPI_DIRNAME}/wrapped.js
 COORDS=${XPI_DIRNAME}/coords.json
 SKIPPED=${XPI_DIRNAME}/skipped.json
@@ -226,11 +227,15 @@ if [ -n "$STATS" ]; then
     exit 0
 fi
 
+echo "Normalizing newlines..." >&2
+
+perl -pe 's/\r\n?/\n/g' ${ALLJS} > ${NORMALIZEDJS}
+
 echo "Analyzing source..." >&2
 
 cd $ROOT/lib/cfa2
 
-env time -f "%E" -o ${XPI_DIRNAME}/elapsed ./evtclassify.js $ALLJS $COORDS ${XPI_BASENAME} ${XPI_DIRNAME} > ${XPI_DIRNAME}/output 2>&1 &
+env time -f "%E" -o ${XPI_DIRNAME}/elapsed ./evtclassify.js $NORMALIZEDJS $COORDS ${XPI_BASENAME} ${XPI_DIRNAME} > ${XPI_DIRNAME}/output 2>&1 &
 export ANALYSIS=$!
 
 # Time out after 5 minutes.
